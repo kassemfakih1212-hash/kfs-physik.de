@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KFS Physik - Didaktische Simulationen & Science Hub</title>
+    <style>
+        :root {
+            --bg-color: #030712;
+            --card-bg: #0b1329;
+            --card-border: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-green-glow: #34d399;
+            --accent-blue: #38bdf8;
+            --accent-gold: #fbbf24;
+            --accent-purple: #c084fc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* HEADER & NAVIGATION */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 0 40px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent-gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 10px 14px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link:hover, .nav-item:hover > .nav-link {
+            color: var(--text-main);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        /* DROPDOWN MENU */
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 240px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.25s ease;
+            list-style: none;
+            padding: 8px 0;
+            z-index: 1100;
+        }
+
+        .nav-item:hover .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item a {
+            display: block;
+            padding: 10px 18px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item a:hover {
+            color: var(--accent-gold);
+            background-color: rgba(251, 191, 36, 0.08);
+            padding-left: 24px;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            position: relative;
+            padding: 120px 20px 100px;
+            text-align: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        #spaceCanvas {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green-glow);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 14px 34px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-gold), #d97706);
+            color: #000;
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 35px rgba(251, 191, 36, 0.5);
+        }
+
+        /* SECTION COMMON */
+        section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            font-size: 1rem;
+        }
+
+        /* GRID LAYOUTS */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-decoration: none;
+        }
+
+        .card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .card-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card:hover .card-link {
+            color: var(--accent-green-glow);
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--card-border);
+            background-color: #02050e;
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 60px;
+        }
+
+        footer a {
+            color: var(--text-main);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        footer a:hover {
+            color: var(--accent-gold);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER & NAVIGATION -->
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">KFS <span>Physik</span></a>
+
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a class="nav-link">Simulationen ▾</a>
+                    <ul class="dropdown">
+                        <li class="dropdown-item"><a href="Ueberholvorgang_sim.html">Überholvorgang (Gleichförmig)</a></li>
+                        <li class="dropdown-item"><a href="Ueberholvorgang_besch.html">Beschleunigtes Überholen</a></li>
+                        <li class="dropdown-item"><a href="Freier_Fall_Simulation.html">Freier Fall</a></li>
+                        <li class="dropdown-item"><a href="Cesar_code.html">Cäsar Crypto Lab</a></li>
+                        <li class="dropdown-item"><a href="Nadelproblem.html">Buffonsches Nadelproblem</a></li>
+                        <li class="dropdown-item"><a href="Mathe_simulation.html">Math Race</a></li>
+                        <li class="dropdown-item"><a href="Sprechender_hut2.html.html">Der Sprechende Hut</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a href="#minispiele" class="nav-link">Minispiele</a></li>
+                <li class="nav-item"><a href="#about" class="nav-link">Über mich & Kontakt</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <div class="hero">
+        <canvas id="spaceCanvas"></canvas>
+        <div class="hero-badge">Interactive STEM Platform</div>
+        <h1>MINT-Wissenschaft lebendig & anschaulich erleben</h1>
+        <p>Didaktische Simulationen, High-Contrast Visualisierungen und kreative Minispiele für Physik, Mathematik und Informatik.</p>
+        <div class="cta-buttons">
+            <a href="#simulationen" class="btn btn-primary">Simulationen entdecken</a>
+        </div>
+    </div>
+
+    <!-- FEATURED SIMULATIONEN GRID -->
+    <section id="simulationen">
+        <h2 class="section-title">Interaktive Simulationen</h2>
+        <p class="section-desc">Wähle eines der Didaktik-Laboratories für anschauliche Erkenntnisse im Unterricht oder Studium.</p>
+
+        <div class="grid-cards">
+            
+            <!-- ÜBERHOLVORGANG GLEICHFÖRMIG -->
+            <a href="Ueberholvorgang_sim.html" class="card">
+                <div>
+                    <div class="card-tag">Physik & Kinematik</div>
+                    <h3>Überholvorgang (Gleichförmig)</h3>
+                    <p>Analytische Berechnung, t-s-Diagramm und CSV-Datenexport für zwei gleichförmig bewegte Fahrzeuge.</p>
+                </div>
+                <span class="card-link">Labor starten →</span>
+            </a>
+
+            <!-- ÜBERHOLVORGANG BESCHLEUNIGT -->
+            <a href="Ueberholvorgang_besch.html" class="card">
+                <div>
+                    <div class="card-tag">Physik & Dynamik</div>
+                    <h3>Überholvorgang mit Beschleunigung</h3>
+                    <p>Quadratische Zeit-Weg-Gesetze, Überholweiten und Echtzeit-Diagramme für beschleunigte Überholmanöver.</p>
+                </div>
+                <span class="card-link">Labor starten →</span>
+            </a>
+
+            <!-- FREIER FALL -->
+            <a href="Freier_Fall_Simulation.html" class="card">
+                <div>
+                    <div class="card-tag">Physik & Gravitation</div>
+                    <h3>Freier Fall & Senkrechter Wurf</h3>
+                    <p>Interaktiver Fallturm mit variablen Ortsfaktoren (Erde, Mond, Mars) und t-y-Parabeldiagrammen.</p>
+                </div>
+                <span class="card-link">Labor starten →</span>
+            </a>
+
+            <!-- CÄSAR LAB -->
+            <a href="Cesar_code.html" class="card">
+                <div>
+                    <div class="card-tag">Informatik & Kryptologie</div>
+                    <h3>Cäsar Crypto Laboratory</h3>
+                    <p>Linearer Buchstabe-für-Buchstabe Schieber, Frequenzanalyse mit Chi-Quadrat Matching und Auto-Crack Modus.</p>
+                </div>
+                <span class="card-link">Labor starten →</span>
+            </a>
+
+            <!-- BUFFON'S NEEDLE -->
+            <a href="Nadelproblem.html" class="card">
+                <div>
+                    <div class="card-tag">Mathematik & Stochastik</div>
+                    <h3>Buffonsches Nadelproblem</h3>
+                    <p>Monte-Carlo-Simulation zur statistischen Näherung der Kreiszahl Pi durch zufälligen Nadelwurf.</p>
+                </div>
+                <span class="card-link">Labor starten →</span>
+            </a>
+
+            <!-- MATH RACE -->
+            <a href="Mathe_simulation.html" class="card">
+                <div>
+                    <div class="card-tag">Mathematik & Analysis</div>
+                    <h3>Math Race: Termwachstum</h3>
+                    <p>Wachstumsgeschwindigkeiten von Termen und mathematischen Funktionen im direkten Turm-Rennen.</p>
+                </div>
+                <span class="card-link">Labor starten →</span>
+            </a>
+
+            <!-- SPRECHENDER HUT -->
+            <a href="Sprechender_hut2.html.html" class="card">
+                <div>
+                    <div class="card-tag" style="color: var(--accent-purple);">Nerd-Simulationen</div>
+                    <h3>Der Sprechende Hut</h3>
+                    <p>Interaktive Stimm- und Haus-Zuordnung mit Audio-Ausgabe und Pop-Kultur-Elementen.</p>
+                </div>
+                <span class="card-link" style="color: var(--accent-purple);">Labor starten →</span>
+            </a>
+
+        </div>
+    </section>
+
+    <!-- ARCADE MINISPIELE -->
+    <section id="minispiele" style="background-color: rgba(11, 19, 41, 0.4); border-radius: 16px;">
+        <h2 class="section-title">Arcade Minispiele</h2>
+        <p class="section-desc">Retro-Gaming im 80er/90er-Look mit klarem wissenschaftlichem Bezug.</p>
+
+        <div class="grid-cards">
+            <div class="card" style="border-color: var(--accent-purple); cursor: default;">
+                <div>
+                    <div class="card-tag" style="color: var(--accent-purple);">Retro Arcade 8-Bit</div>
+                    <h3>Lab-Lemmings: Panik im Chemiesaal</h3>
+                    <p>Rette die verpeilten Schüler vor Säurebädern und Reibungs-Fallen durch geschickten Einsatz physikalischer Gesetze!</p>
+                </div>
+                <span class="card-link" style="color: var(--accent-purple);">Demnächst →</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 KFS Physik. Entwickelt für modernen MINT-Unterricht & Science-Fans.</p>
+        <p style="margin-top: 10px;">
+            <a href="#">Impressum</a> | 
+            <a href="#">Datenschutz</a> | 
+            <a href="#about">Über mich & Kontakt</a>
+        </p>
+    </footer>
+
+    <!-- SPACE HINTERGRUND CANVAS ANIMATION -->
+    <script>
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const stars = Array.from({ length: 120 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.8 + 0.4,
+            baseAlpha: Math.random() * 0.7 + 0.3,
+            pulseSpeed: Math.random() * 0.03 + 0.01,
+            phase: Math.random() * Math.PI * 2
+        }));
+
+        const nebulae = [
+            { xRatio: 0.25, yRatio: 0.35, r: 280, color: 'rgba(225, 29, 72, 0.08)', drift: 0 },
+            { xRatio: 0.75, yRatio: 0.55, r: 320, color: 'rgba(159, 18, 57, 0.07)', drift: 1.5 },
+            { xRatio: 0.50, yRatio: 0.25, r: 220, color: 'rgba(192, 132, 252, 0.05)', drift: 3.0 }
+        ];
+
+        let shootingStar = null;
+        let time = 0;
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.015;
+
+            nebulae.forEach(n => {
+                const cx = canvas.width * n.xRatio + Math.sin(time * 0.5 + n.drift) * 35;
+                const cy = canvas.height * n.yRatio + Math.cos(time * 0.4 + n.drift) * 25;
+                const pulseR = n.r + Math.sin(time * 0.3 + n.drift) * 20;
+
+                const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, pulseR);
+                grad.addColorStop(0, n.color);
+                grad.addColorStop(0.6, n.color.replace(/[\d\.]+\)$/, '0.02)'));
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            stars.forEach(s => {
+                s.phase += s.pulseSpeed;
+                const currentAlpha = s.baseAlpha + Math.sin(s.phase) * 0.25;
+                ctx.fillStyle = `rgba(248, 250, 252, ${Math.max(0.1, Math.min(1.0, currentAlpha))})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            if (Math.random() < 0.008 && !shootingStar) {
+                shootingStar = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height * 0.5),
+                    length: Math.random() * 80 + 40,
+                    speed: Math.random() * 8 + 6,
+                    angle: Math.PI / 4,
+                    alpha: 1.0
+                };
+            }
+
+            if (shootingStar) {
+                const headX = shootingStar.x, headY = shootingStar.y;
+                const tailX = headX - Math.cos(shootingStar.angle) * shootingStar.length;
+                const tailY = headY - Math.sin(shootingStar.angle) * shootingStar.length;
+
+                const grad = ctx.createLinearGradient(tailX, tailY, headX, headY);
+                grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                grad.addColorStop(1, `rgba(251, 191, 36, ${shootingStar.alpha})`);
+
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 1.8;
+                ctx.beginPath();
+                ctx.moveTo(tailX, tailY);
+                ctx.lineTo(headX, headY);
+                ctx.stroke();
+
+                shootingStar.x += Math.cos(shootingStar.angle) * shootingStar.speed;
+                shootingStar.y += Math.sin(shootingStar.angle) * shootingStar.speed;
+                shootingStar.alpha -= 0.015;
+
+                if (shootingStar.alpha <= 0) shootingStar = null;
+            }
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
