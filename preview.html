@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KFS - Überholvorgang (Gleichförmige Bewegung)</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-red: #f87171;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-purple: #c084fc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .vehicle-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .v1-color { color: var(--accent-red); }
+        .v2-color { color: var(--accent-blue); }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        input[type="number"], input[type="range"], select {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            padding: 4px 0;
+            accent-color: var(--accent-blue);
+        }
+
+        .speed-val {
+            font-weight: bold;
+            color: var(--accent-blue);
+            float: right;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-primary { background-color: var(--accent-blue); color: #000; flex: 1; }
+        .btn-secondary { background-color: #475569; color: #fff; flex: 1; }
+        
+        .btn-csv {
+            background-color: #059669;
+            color: #ffffff;
+            width: 100%;
+            padding: 9px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-csv:hover {
+            background-color: #10b981;
+        }
+
+        canvas {
+            width: 100%;
+            height: 240px;
+            background-color: #090d16;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .outputs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .output-box {
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .output-box .title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .output-box .value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-top: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        th, td {
+            padding: 6px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        th { color: var(--text-muted); }
+
+        .table-container {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+        }
+
+        /* FORMEL-BEREICH */
+        .formula-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 5px;
+        }
+
+        .formula-item {
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .formula-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .formula-title {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+
+        .formula-math {
+            font-family: "Georgia", "Times New Roman", serif;
+            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--accent-purple);
+            background: #1e293b;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            border-left: 3px solid var(--accent-purple);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>KFS - Überholvorgang (Gleichförmige Bewegung)</h1>
+    </header>
+
+    <div class="grid-container">
+        <!-- LINKES PANEL: STEUERUNG & FORMELN -->
+        <aside>
+            <div class="card">
+                <h2>Parameter</h2>
+
+                <div class="vehicle-title v1-color">Fahrzeug 1 (Rot)</div>
+                <div class="control-group">
+                    <label>Startposition <i>s</i>₀,₁ (m)</label>
+                    <input type="number" id="inputS1" value="50" min="0" step="10" oninput="resetSim()">
+                </div>
+                <div class="control-group">
+                    <label>Geschwindigkeit <i>v</i>₁ (m/s)</label>
+                    <input type="number" id="inputV1" value="15" min="1" step="1" oninput="resetSim()">
+                </div>
+
+                <div class="vehicle-title v2-color" style="margin-top: 15px;">Fahrzeug 2 (Blau)</div>
+                <div class="control-group">
+                    <label>Startposition <i>s</i>₀,₂ (m)</label>
+                    <input type="number" id="inputS2" value="0" min="0" step="10" oninput="resetSim()">
+                </div>
+                <div class="control-group">
+                    <label>Geschwindigkeit <i>v</i>₂ (m/s)</label>
+                    <input type="number" id="inputV2" value="25" min="1" step="1" oninput="resetSim()">
+                </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                    <div class="control-group">
+                        <label>Simulationsgeschwindigkeit <span class="speed-val" id="speedLabel">1.0x</span></label>
+                        <input type="range" id="inputSpeed" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateSpeedLabel()">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnStart" class="btn-primary" onclick="toggleSim()">Start</button>
+                    <button class="btn-secondary" onclick="resetSim()">Zurücksetzen</button>
+                </div>
+            </div>
+
+            <!-- UNTEN LINKS: VERWENDETE FORMELN -->
+            <div class="card">
+                <h2 style="color: var(--accent-purple);">Verwendete Formeln</h2>
+                <div class="formula-card">
+                    <div class="formula-item">
+                        <div class="formula-title">Bewegungsfunktionen:</div>
+                        <div class="formula-math"><i>s</i>₁(<i>t</i>) = <i>s</i>₀,₁ + <i>v</i>₁ · <i>t</i></div>
+                        <div class="formula-math" style="margin-top:4px;"><i>s</i>₂(<i>t</i>) = <i>s</i>₀,₂ + <i>v</i>₂ · <i>t</i></div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="formula-title">Überholbedingung:</div>
+                        <div class="formula-math"><i>s</i>₁(<i>t</i><sub>überhol</sub>) = <i>s</i>₂(<i>t</i><sub>überhol</sub>)</div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="formula-title">Überholzeitpunkt:</div>
+                        <div class="formula-math"><i>t</i><sub>überhol</sub> = (<i>s</i>₀,₁ - <i>s</i>₀,₂) / (<i>v</i>₂ - <i>v</i>₁)</div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="formula-title">Überholort:</div>
+                        <div class="formula-math"><i>s</i><sub>überhol</sub> = <i>s</i>₀,₁ + <i>v</i>₁ · <i>t</i><sub>überhol</sub></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- HAUPTBEREICH -->
+        <main>
+            <!-- VISUALISIERUNG -->
+            <div class="card">
+                <h2>Visualisierung</h2>
+                <canvas id="canvasSim"></canvas>
+            </div>
+
+            <!-- DIAGRAMM -->
+            <div class="card">
+                <h2>Zeit- Weg- Diagramm (<i>t</i>-<i>s</i>-Diagramm)</h2>
+                <canvas id="canvasTS"></canvas>
+            </div>
+
+            <!-- ANALYTIK & TABLE -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card">
+                    <h2>Analytische Berechnung</h2>
+                    <div class="outputs-grid">
+                        <div class="output-box">
+                            <div class="title">Überholzeitpunkt <i>t</i><sub>überhol</sub></div>
+                            <div class="value" id="valTreffTime">-- s</div>
+                        </div>
+                        <div class="output-box">
+                            <div class="title">Überholort <i>s</i><sub>überhol</sub></div>
+                            <div class="value" id="valTreffPos">-- m</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Messdaten</h2>
+                    <button class="btn-csv" onclick="exportCSV()">
+                        💾 Messdaten als CSV exportieren
+                    </button>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><i>t</i> (s)</th>
+                                    <th><i>s</i>₁ (m)</th>
+                                    <th><i>s</i>₂ (m)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let t = 0;
+        let animationFrame;
+        let dataLog = [];
+
+        const inputS1 = document.getElementById('inputS1');
+        const inputV1 = document.getElementById('inputV1');
+        const inputS2 = document.getElementById('inputS2');
+        const inputV2 = document.getElementById('inputV2');
+        const inputSpeed = document.getElementById('inputSpeed');
+        const speedLabel = document.getElementById('speedLabel');
+        const btnStart = document.getElementById('btnStart');
+
+        const cvSim = document.getElementById('canvasSim');
+        const cvTS = document.getElementById('canvasTS');
+        const ctxSim = cvSim.getContext('2d');
+        const ctxTS = cvTS.getContext('2d');
+
+        function updateSpeedLabel() {
+            speedLabel.textContent = parseFloat(inputSpeed.value).toFixed(1) + 'x';
+        }
+
+        function resizeCanvas() {
+            [cvSim, cvTS].forEach(cv => {
+                cv.width = cv.clientWidth;
+                cv.height = cv.clientHeight;
+            });
+            drawAll();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function getParams() {
+            return {
+                s1: parseFloat(inputS1.value) || 0,
+                v1: parseFloat(inputV1.value) || 0,
+                s2: parseFloat(inputS2.value) || 0,
+                v2: parseFloat(inputV2.value) || 0,
+                speed: parseFloat(inputSpeed.value) || 1.0
+            };
+        }
+
+        function getIntersection() {
+            const p = getParams();
+            const dv = p.v2 - p.v1;
+            const ds = p.s1 - p.s2;
+            if (dv <= 0 || ds <= 0) return null;
+            const tTreff = ds / dv;
+            const sTreff = p.s1 + p.v1 * tTreff;
+            return { tTreff, sTreff };
+        }
+
+        function updateAnalytics() {
+            const inter = getIntersection();
+            if (inter) {
+                document.getElementById('valTreffTime').textContent = inter.tTreff.toFixed(2) + ' s';
+                document.getElementById('valTreffPos').textContent = inter.sTreff.toFixed(2) + ' m';
+            } else {
+                document.getElementById('valTreffTime').textContent = 'Kein Überholen';
+                document.getElementById('valTreffPos').textContent = '--';
+            }
+        }
+
+        function toggleSim() {
+            if (isRunning) {
+                isRunning = false;
+                btnStart.textContent = 'Weiter';
+                cancelAnimationFrame(animationFrame);
+            } else {
+                isRunning = true;
+                btnStart.textContent = 'Pause';
+                animate();
+            }
+        }
+
+        function resetSim() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrame);
+            btnStart.textContent = 'Start';
+            t = 0;
+            dataLog = [];
+            document.getElementById('tableBody').innerHTML = '';
+            updateAnalytics();
+            drawAll();
+        }
+
+        function animate() {
+            const p = getParams();
+            const inter = getIntersection();
+            const tMax = inter ? inter.tTreff * 1.4 : 10;
+
+            t += 0.02 * p.speed;
+            if (t > tMax) {
+                t = tMax;
+                isRunning = false;
+                btnStart.textContent = 'Start';
+            }
+
+            const s1_t = p.s1 + p.v1 * t;
+            const s2_t = p.s2 + p.v2 * t;
+
+            dataLog.push({ t, s1: s1_t, s2: s2_t });
+            updateTable(t, s1_t, s2_t);
+
+            drawAll();
+
+            if (isRunning) {
+                animationFrame = requestAnimationFrame(animate);
+            }
+        }
+
+        function updateTable(tVal, s1Val, s2Val) {
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${tVal.toFixed(2)}</td>
+                <td>${s1Val.toFixed(2)}</td>
+                <td>${s2Val.toFixed(2)}</td>
+            `;
+            tbody.insertBefore(tr, tbody.firstChild);
+        }
+
+        function drawAll() {
+            drawSim();
+            drawTS();
+        }
+
+        function drawSim() {
+            const w = cvSim.width, h = cvSim.height;
+            ctxSim.clearRect(0, 0, w, h);
+            const p = getParams();
+            const inter = getIntersection();
+            const maxDist = Math.max(200, inter ? inter.sTreff * 1.3 : 200);
+
+            const margin = 40;
+            const scaleX = (w - 2 * margin) / maxDist;
+
+            // Fahrbahnen
+            ctxSim.fillStyle = '#334155';
+            ctxSim.fillRect(margin, h / 2 - 40, w - 2 * margin, 80);
+            
+            // Mittellinie
+            ctxSim.strokeStyle = '#facc15';
+            ctxSim.setLineDash([10, 10]);
+            ctxSim.beginPath();
+            ctxSim.moveTo(margin, h / 2);
+            ctxSim.lineTo(w - margin, h / 2);
+            ctxSim.stroke();
+            ctxSim.setLineDash([]);
+
+            // Skalenmarkierungen
+            ctxSim.fillStyle = '#94a3b8';
+            ctxSim.font = '10px sans-serif';
+            const stepMeters = maxDist > 300 ? 50 : 25;
+            for (let m = 0; m <= maxDist; m += stepMeters) {
+                const px = margin + m * scaleX;
+                ctxSim.fillRect(px, h / 2 + 40, 1, 5);
+                ctxSim.fillText(m + 'm', px - 8, h / 2 + 55);
+            }
+
+            // Auto 1 (Rot, oben)
+            const x1 = margin + (p.s1 + p.v1 * t) * scaleX;
+            ctxSim.fillStyle = '#f87171';
+            ctxSim.fillRect(x1 - 15, h / 2 - 30, 30, 15);
+
+            // Auto 2 (Blau, unten)
+            const x2 = margin + (p.s2 + p.v2 * t) * scaleX;
+            ctxSim.fillStyle = '#38bdf8';
+            ctxSim.fillRect(x2 - 15, h / 2 + 15, 30, 15);
+        }
+
+        function drawTS() {
+            const w = cvTS.width, h = cvTS.height;
+            ctxTS.clearRect(0, 0, w, h);
+            const p = getParams();
+            const inter = getIntersection();
+            const margin = 40;
+
+            const tMax = inter ? inter.tTreff * 1.4 : 10;
+            const sMax = inter ? inter.sTreff * 1.3 : 200;
+
+            const scaleT = (w - 2 * margin) / tMax;
+            const scaleS = (h - 2 * margin) / sMax;
+
+            // Achsen
+            ctxTS.strokeStyle = '#475569';
+            ctxTS.lineWidth = 1;
+            ctxTS.beginPath();
+            ctxTS.moveTo(margin, h - margin); ctxTS.lineTo(w - margin, h - margin);
+            ctxTS.moveTo(margin, h - margin); ctxTS.lineTo(margin, margin);
+            ctxTS.stroke();
+
+            // Achsenbeschriftung
+            ctxTS.fillStyle = '#94a3b8';
+            ctxTS.font = '11px sans-serif';
+            ctxTS.fillText('t (s)', w - margin + 5, h - margin + 4);
+            ctxTS.fillText('s (m)', margin - 15, margin - 10);
+
+            // Dynamisches Zeichnen bis zum aktuellen t
+            ctxTS.strokeStyle = '#f87171';
+            ctxTS.lineWidth = 2.5;
+            ctxTS.beginPath();
+            ctxTS.moveTo(margin, (h - margin) - p.s1 * scaleS);
+            const px1 = margin + t * scaleT;
+            const py1 = (h - margin) - (p.s1 + p.v1 * t) * scaleS;
+            ctxTS.lineTo(px1, py1);
+            ctxTS.stroke();
+
+            ctxTS.fillStyle = '#f87171';
+            ctxTS.beginPath();
+            ctxTS.arc(px1, py1, 4, 0, Math.PI * 2);
+            ctxTS.fill();
+
+            ctxTS.strokeStyle = '#38bdf8';
+            ctxTS.lineWidth = 2.5;
+            ctxTS.beginPath();
+            ctxTS.moveTo(margin, (h - margin) - p.s2 * scaleS);
+            const px2 = margin + t * scaleT;
+            const py2 = (h - margin) - (p.s2 + p.v2 * t) * scaleS;
+            ctxTS.lineTo(px2, py2);
+            ctxTS.stroke();
+
+            ctxTS.fillStyle = '#38bdf8';
+            ctxTS.beginPath();
+            ctxTS.arc(px2, py2, 4, 0, Math.PI * 2);
+            ctxTS.fill();
+
+            if (inter && t >= inter.tTreff) {
+                const pxInt = margin + inter.tTreff * scaleT;
+                const pyInt = (h - margin) - inter.sTreff * scaleS;
+
+                ctxTS.fillStyle = '#4ade80';
+                ctxTS.beginPath();
+                ctxTS.arc(pxInt, pyInt, 6, 0, Math.PI * 2);
+                ctxTS.fill();
+
+                ctxTS.strokeStyle = '#4ade80';
+                ctxTS.setLineDash([4, 4]);
+                ctxTS.beginPath();
+                ctxTS.moveTo(pxInt, pyInt); ctxTS.lineTo(pxInt, h - margin);
+                ctxTS.moveTo(pxInt, pyInt); ctxTS.lineTo(margin, pyInt);
+                ctxTS.stroke();
+                ctxTS.setLineDash([]);
+            }
+        }
+
+        // Zuverlässiger CSV-Export über Blob-URL
+        function exportCSV() {
+            if (dataLog.length === 0) { 
+                alert('Es sind noch keine Messdaten vorhanden. Bitte starte zuerst die Simulation!'); 
+                return; 
+            }
+            let csv = 'Zeit (s);s1 (m);s2 (m)\n';
+            dataLog.forEach(row => {
+                csv += `${row.t.toFixed(2)};${row.s1.toFixed(2)};${row.s2.toFixed(2)}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'kfs_ueberholvorgang_gleichfoermig_messdaten.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        updateAnalytics();
+        setTimeout(resizeCanvas, 100);
+    </script>
+</body>
+</html>

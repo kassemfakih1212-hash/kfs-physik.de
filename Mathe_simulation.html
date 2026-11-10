@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KFS - Math Race: Termwachstum & Schranken</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-orange: #fb923c;
+            --accent-green: #4ade80;
+            --accent-purple: #c084fc;
+            --accent-gold: #facc15;
+            --accent-red: #f87171;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 950px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+
+        input[type="text"], input[type="number"], input[type="range"], select {
+            width: 100%;
+            padding: 6px 8px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+        }
+
+        input[type="range"] {
+            padding: 4px 0;
+            accent-color: var(--accent-blue);
+        }
+
+        .speed-val {
+            font-weight: bold;
+            color: var(--accent-blue);
+            float: right;
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .btn-preset {
+            background-color: #334155;
+            color: var(--text-main);
+            font-size: 0.75rem;
+            padding: 6px 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .btn-preset:hover { background-color: #475569; }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-primary { background-color: var(--accent-blue); color: #000; flex: 1; }
+        .btn-secondary { background-color: #475569; color: #fff; flex: 1; }
+
+        .btn-csv {
+            background-color: #059669;
+            color: #ffffff;
+            width: 100%;
+            padding: 9px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-csv:hover { background-color: #10b981; }
+
+        canvas {
+            width: 100%;
+            height: 380px;
+            background-color: #090d16;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .outputs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .output-box {
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .output-box .title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .output-box .value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-top: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        th, td {
+            padding: 6px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        th { color: var(--text-muted); }
+
+        .table-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+        }
+
+        .winner-banner {
+            background: linear-gradient(90deg, rgba(250, 204, 21, 0.2), rgba(234, 88, 12, 0.2));
+            border: 1px solid var(--accent-gold);
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--accent-gold);
+            display: none;
+        }
+
+        .badge-goal {
+            background-color: rgba(250, 204, 21, 0.15);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-container input {
+            cursor: pointer;
+            accent-color: var(--accent-blue);
+        }
+
+        .indiv-n-panel {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background-color: var(--bg-color);
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>KFS - Math Race: Termwachstum & Schranken</h1>
+        <div class="badge-goal" id="goalBadge">ZIEL: 2.000</div>
+    </header>
+
+    <div class="grid-container">
+        <!-- LINKES PANEL: INPUTS & SETTINGS -->
+        <aside>
+            <div class="card">
+                <h2>Term-Duell Konfiguration</h2>
+
+                <div class="control-group">
+                    <label style="color: var(--accent-red); font-weight: bold;">Term A (Rot): f(n) =</label>
+                    <input type="text" id="inputTermA" value="10 * n^2" onchange="resetSim()">
+                </div>
+
+                <div class="control-group">
+                    <label style="color: var(--accent-blue); font-weight: bold;">Term B (Blau): g(n) =</label>
+                    <input type="text" id="inputTermB" value="2^n" onchange="resetSim()">
+                </div>
+
+                <label>Schnell-Presets</label>
+                <div class="presets">
+                    <button class="btn-preset" onclick="setPreset('10*n^2', '2^n')">10n² vs 2ⁿ</button>
+                    <button class="btn-preset" onclick="setPreset('100*n', 'n^2')">100n vs n²</button>
+                    <button class="btn-preset" onclick="setPreset('n^3', '1.5^n')">n³ vs 1.5ⁿ</button>
+                    <button class="btn-preset" onclick="setPreset('2^n', 'n!')">2ⁿ vs n!</button>
+                </div>
+
+                <div class="control-group">
+                    <label>Ziel-Schranke (Zielwert)</label>
+                    <input type="number" id="inputGoal" value="2000" min="10" max="1000000000" step="50" onchange="resetSim()">
+                </div>
+
+                <!-- OPTIONAL: INDIVIDUELLE STARTWERTE -->
+                <label class="checkbox-container">
+                    <input type="checkbox" id="chkIndivN" onchange="toggleIndivN()">
+                    <span>Individuelle Startwerte nutzen (optional)</span>
+                </label>
+
+                <div id="singleNPanel" class="control-group">
+                    <label>Gemeinsamer Startwert n₀</label>
+                    <input type="number" id="inputN0" value="1" min="0" max="100" step="1" onchange="resetSim()">
+                </div>
+
+                <div id="indivNPanel" class="indiv-n-panel">
+                    <div>
+                        <label style="color: var(--accent-red);">Start n₀,A</label>
+                        <input type="number" id="inputN0A" value="1" min="0" max="100" step="1" onchange="resetSim()">
+                    </div>
+                    <div>
+                        <label style="color: var(--accent-blue);">Start n₀,B</label>
+                        <input type="number" id="inputN0B" value="1" min="0" max="100" step="1" onchange="resetSim()">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Schrittweite Δn</label>
+                    <input type="number" id="inputStepN" value="1" min="0.1" max="10" step="0.1" onchange="resetSim()">
+                </div>
+
+                <div class="control-group">
+                    <label>Höhen-Skalierung</label>
+                    <select id="selectScale" onchange="resetSim()">
+                        <option value="linear" selected>Linear (Schranke = 100%)</option>
+                        <option value="log">Logarithmisch (Große Werte)</option>
+                    </select>
+                </div>
+
+                <label class="checkbox-container" style="margin-top: 5px;">
+                    <input type="checkbox" id="chkNeonGlow" checked onchange="drawRace()">
+                    <span>Neon-Glow für Führenden aktivieren</span>
+                </label>
+
+                <div style="margin-top: 10px; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                    <div class="control-group">
+                        <label>Simulationsgeschwindigkeit <span class="speed-val" id="speedLabel">1.0x</span></label>
+                        <input type="range" id="inputSpeed" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateSpeedLabel()">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnStart" class="btn-primary" onclick="toggleSim()">Start</button>
+                    <button class="btn-secondary" onclick="resetSim()">Zurücksetzen</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- HAUPTBEREICH: VISUALISIERUNG & DATEN -->
+        <main>
+            <div id="winnerBanner" class="winner-banner">
+                🏆 Gewinner: Term A hat die Ziel-Schranke zuerst durchbrochen!
+            </div>
+
+            <!-- TOWER RACE CANVAS -->
+            <div class="card">
+                <h2>Tower Race Arena</h2>
+                <canvas id="canvasRace"></canvas>
+            </div>
+
+            <!-- ANALYTIK & TABLE -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card">
+                    <h2>Aktuelle Werte (<span id="valN" style="color: var(--accent-gold);">n = 1</span>)</h2>
+                    <div class="outputs-grid">
+                        <div class="output-box">
+                            <div class="title" style="color: var(--accent-red);">Wert f(nA)</div>
+                            <div class="value" id="valA" style="color: var(--accent-red);">0</div>
+                        </div>
+                        <div class="output-box">
+                            <div class="title" style="color: var(--accent-blue);">Wert g(nB)</div>
+                            <div class="value" id="valB" style="color: var(--accent-blue);">0</div>
+                        </div>
+                        <div class="output-box">
+                            <div class="title">Fortschritt f(nA)</div>
+                            <div class="value" id="valProgA">0 %</div>
+                        </div>
+                        <div class="output-box">
+                            <div class="title">Fortschritt g(nB)</div>
+                            <div class="value" id="valProgB">0 %</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Messdaten Log</h2>
+                    <button class="btn-csv" onclick="exportCSV()">
+                        💾 Messdaten als CSV exportieren
+                    </button>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>n (nA / nB)</th>
+                                    <th>f(n) [Rot]</th>
+                                    <th>g(n) [Blau]</th>
+                                    <th>Führend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let nA_Curr = 1;
+        let nB_Curr = 1;
+        let animationFrame;
+        let dataLog = [];
+        let winner = null;
+
+        const inputTermA = document.getElementById('inputTermA');
+        const inputTermB = document.getElementById('inputTermB');
+        const inputGoal = document.getElementById('inputGoal');
+        const chkIndivN = document.getElementById('chkIndivN');
+        const singleNPanel = document.getElementById('singleNPanel');
+        const indivNPanel = document.getElementById('indivNPanel');
+        const inputN0 = document.getElementById('inputN0');
+        const inputN0A = document.getElementById('inputN0A');
+        const inputN0B = document.getElementById('inputN0B');
+        const inputStepN = document.getElementById('inputStepN');
+        const selectScale = document.getElementById('selectScale');
+        const chkNeonGlow = document.getElementById('chkNeonGlow');
+        const inputSpeed = document.getElementById('inputSpeed');
+        const speedLabel = document.getElementById('speedLabel');
+        const btnStart = document.getElementById('btnStart');
+        const winnerBanner = document.getElementById('winnerBanner');
+
+        const cvRace = document.getElementById('canvasRace');
+        const ctxRace = cvRace.getContext('2d');
+
+        function updateSpeedLabel() {
+            speedLabel.textContent = parseFloat(inputSpeed.value).toFixed(1) + 'x';
+        }
+
+        function toggleIndivN() {
+            if (chkIndivN.checked) {
+                singleNPanel.style.display = 'none';
+                indivNPanel.style.display = 'grid';
+            } else {
+                singleNPanel.style.display = 'block';
+                indivNPanel.style.display = 'none';
+            }
+            resetSim();
+        }
+
+        function setPreset(tA, tB) {
+            inputTermA.value = tA;
+            inputTermB.value = tB;
+            resetSim();
+        }
+
+        function resizeCanvas() {
+            cvRace.width = cvRace.clientWidth;
+            cvRace.height = cvRace.clientHeight;
+            drawRace();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function parseMath(expr, nVal) {
+            try {
+                let formatted = expr.replace(/\s+/g, '')
+                                    .replace(/(\d)(n)/g, '$1*$2')
+                                    .replace(/n!/g, `fact(${nVal})`)
+                                    .replace(/n/g, `(${nVal})`)
+                                    .replace(/\^/g, '**');
+
+                function fact(num) {
+                    let r = 1;
+                    let val = Math.floor(Math.abs(num));
+                    if (val > 170) return Infinity; 
+                    for (let i = 2; i <= val; i++) r *= i;
+                    return r;
+                }
+
+                let fn = new Function('fact', `return ${formatted};`);
+                let res = fn(fact);
+                return (isNaN(res) || res < 0) ? 0 : res;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function getParams() {
+            const goal = parseFloat(inputGoal.value) || 2000;
+            const isIndiv = chkIndivN.checked;
+            const n0A = isIndiv ? (parseFloat(inputN0A.value) || 0) : (parseFloat(inputN0.value) || 0);
+            const n0B = isIndiv ? (parseFloat(inputN0B.value) || 0) : (parseFloat(inputN0.value) || 0);
+            const stepN = parseFloat(inputStepN.value) || 1;
+            const scaleMode = selectScale.value;
+            const speed = parseFloat(inputSpeed.value) || 1.0;
+            return { goal, isIndiv, n0A, n0B, stepN, scaleMode, speed };
+        }
+
+        function toggleSim() {
+            if (isRunning) {
+                isRunning = false;
+                btnStart.textContent = 'Weiter';
+                cancelAnimationFrame(animationFrame);
+            } else {
+                const p = getParams();
+                if (winner !== null) {
+                    nA_Curr = p.n0A;
+                    nB_Curr = p.n0B;
+                    winner = null;
+                    dataLog = [];
+                    document.getElementById('tableBody').innerHTML = '';
+                    winnerBanner.style.display = 'none';
+                }
+                isRunning = true;
+                btnStart.textContent = 'Pause';
+                animate();
+            }
+        }
+
+        function resetSim() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrame);
+            btnStart.textContent = 'Start';
+            const p = getParams();
+            nA_Curr = p.n0A;
+            nB_Curr = p.n0B;
+            winner = null;
+            dataLog = [];
+            document.getElementById('tableBody').innerHTML = '';
+            winnerBanner.style.display = 'none';
+            document.getElementById('goalBadge').textContent = 'ZIEL: ' + p.goal.toLocaleString('de-DE');
+
+            updateAnalytics();
+            drawRace();
+        }
+
+        function animate() {
+            if (!isRunning) return;
+
+            const p = getParams();
+            const valA = parseMath(inputTermA.value, nA_Curr);
+            const valB = parseMath(inputTermB.value, nB_Curr);
+
+            let leader = 'Gleich';
+            if (valA > valB) leader = 'Term A';
+            else if (valB > valA) leader = 'Term B';
+
+            const nStr = p.isIndiv ? `A:${nA_Curr.toFixed(1)} | B:${nB_Curr.toFixed(1)}` : nA_Curr.toFixed(1);
+            dataLog.push({ n: nStr, a: valA, b: valB, leader });
+            updateTable(nStr, valA, valB, leader);
+            updateAnalytics();
+            drawRace();
+
+            if (valA >= p.goal || valB >= p.goal) {
+                isRunning = false;
+                btnStart.textContent = 'Start';
+                if (valA >= p.goal && valB >= p.goal) {
+                    winner = 'Beide (Unentschieden)';
+                    winnerBanner.textContent = `🤝 Unentschieden! Beide Terme haben die Schranke durchbrochen!`;
+                } else if (valA >= p.goal) {
+                    winner = 'Term A';
+                    winnerBanner.textContent = `🏆 Gewinner: Term A [ ${inputTermA.value} ] hat die Ziel-Schranke bei nA = ${nA_Curr.toFixed(1)} zuerst durchbrochen!`;
+                } else {
+                    winner = 'Term B';
+                    winnerBanner.textContent = `🏆 Gewinner: Term B [ ${inputTermB.value} ] hat die Ziel-Schranke bei nB = ${nB_Curr.toFixed(1)} zuerst durchbrochen!`;
+                }
+                winnerBanner.style.display = 'block';
+                return;
+            }
+
+            nA_Curr += p.stepN * 0.05 * p.speed;
+            nB_Curr += p.stepN * 0.05 * p.speed;
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        function updateAnalytics() {
+            const p = getParams();
+            const valA = parseMath(inputTermA.value, nA_Curr);
+            const valB = parseMath(inputTermB.value, nB_Curr);
+
+            document.getElementById('valN').textContent = p.isIndiv ? `nA: ${nA_Curr.toFixed(1)} | nB: ${nB_Curr.toFixed(1)}` : `n = ${nA_Curr.toFixed(1)}`;
+            document.getElementById('valA').textContent = valA >= 1e6 ? valA.toExponential(2) : Math.round(valA).toLocaleString('de-DE');
+            document.getElementById('valB').textContent = valB >= 1e6 ? valB.toExponential(2) : Math.round(valB).toLocaleString('de-DE');
+
+            const progA = ((valA / p.goal) * 100).toFixed(1);
+            const progB = ((valB / p.goal) * 100).toFixed(1);
+
+            document.getElementById('valProgA').textContent = progA + ' %';
+            document.getElementById('valProgB').textContent = progB + ' %';
+        }
+
+        function updateTable(nStr, aVal, bVal, leaderStr) {
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${nStr}</td>
+                <td style="color: var(--accent-red); font-weight: bold;">${aVal >= 1e6 ? aVal.toExponential(2) : Math.round(aVal).toLocaleString('de-DE')}</td>
+                <td style="color: var(--accent-blue); font-weight: bold;">${bVal >= 1e6 ? bVal.toExponential(2) : Math.round(bVal).toLocaleString('de-DE')}</td>
+                <td>${leaderStr}</td>
+            `;
+            tbody.insertBefore(tr, tbody.firstChild);
+        }
+
+        function drawRace() {
+            const w = cvRace.width, h = cvRace.height;
+            ctxRace.clearRect(0, 0, w, h);
+
+            const p = getParams();
+            const valA = parseMath(inputTermA.value, nA_Curr);
+            const valB = parseMath(inputTermB.value, nB_Curr);
+
+            const paddingBottom = 40;
+            const paddingTop = 50;
+            const arenaHeight = h - paddingBottom - paddingTop;
+            const goalY = paddingTop;
+
+            const towerWidth = Math.min(180, w * 0.25);
+            const towerA_X = w * 0.3 - towerWidth / 2;
+            const towerB_X = w * 0.7 - towerWidth / 2;
+
+            function calcNorm(val) {
+                if (p.scaleMode === 'linear') {
+                    return val / p.goal;
+                } else {
+                    return Math.log10(1 + val) / Math.log10(1 + p.goal);
+                }
+            }
+
+            // Gitterlinien
+            ctxRace.strokeStyle = '#1e293b';
+            ctxRace.lineWidth = 1;
+            for (let y = paddingTop; y <= h - paddingBottom; y += 30) {
+                ctxRace.beginPath();
+                ctxRace.moveTo(20, y);
+                ctxRace.lineTo(w - 20, y);
+                ctxRace.stroke();
+            }
+
+            const isGlowing = chkNeonGlow.checked;
+            const isALeading = valA > valB;
+            const isBLeading = valB > valA;
+
+            // Turmrahmen A & B
+            [ { tx: towerA_X, isLead: isALeading, color: 'rgba(248, 113, 113, ' }, 
+              { tx: towerB_X, isLead: isBLeading, color: 'rgba(56, 189, 248, ' } ].forEach((item) => {
+                
+                if (isGlowing && item.isLead) {
+                    ctxRace.shadowColor = item.color + '0.8)';
+                    ctxRace.shadowBlur = 15;
+                }
+                ctxRace.strokeStyle = item.isLead ? item.color + '0.9)' : item.color + '0.3)';
+                ctxRace.lineWidth = item.isLead ? 3 : 2;
+                ctxRace.strokeRect(item.tx, paddingTop, towerWidth, arenaHeight);
+                ctxRace.fillStyle = 'rgba(15, 23, 42, 0.6)';
+                ctxRace.fillRect(item.tx, paddingTop, towerWidth, arenaHeight);
+                ctxRace.shadowBlur = 0;
+            });
+
+            // Blöcke zeichnen
+            function drawTowerBlocks(tx, val, mainColor, lightColor, isLead) {
+                const normRatio = calcNorm(val);
+                const fillHeight = Math.min(arenaHeight * 1.5, normRatio * arenaHeight);
+                const blockHeight = 8;
+                const totalBlocks = Math.floor(fillHeight / blockHeight);
+
+                const startY = h - paddingBottom;
+
+                for (let i = 0; i < totalBlocks; i++) {
+                    const blockY = startY - (i + 1) * blockHeight;
+                    ctxRace.fillStyle = (i % 2 === 0) ? mainColor : lightColor;
+                    ctxRace.fillRect(tx + 4, blockY + 1, towerWidth - 8, blockHeight - 2);
+                }
+
+                if (fillHeight > 0) {
+                    const topY = startY - fillHeight;
+                    if (isGlowing && isLead) {
+                        ctxRace.shadowColor = mainColor;
+                        ctxRace.shadowBlur = 12;
+                    }
+                    ctxRace.fillStyle = '#ffffff';
+                    ctxRace.fillRect(tx + 2, topY - 2, towerWidth - 4, 3);
+                    ctxRace.shadowBlur = 0;
+                }
+            }
+
+            drawTowerBlocks(towerA_X, valA, '#ef4444', '#f87171', isALeading);
+            drawTowerBlocks(towerB_X, valB, '#0284c7', '#38bdf8', isBLeading);
+
+            // Goldene Ziellinie
+            ctxRace.strokeStyle = '#facc15';
+            ctxRace.lineWidth = 3;
+            ctxRace.setLineDash([8, 6]);
+            ctxRace.beginPath();
+            ctxRace.moveTo(20, goalY);
+            ctxRace.lineTo(w - 20, goalY);
+            ctxRace.stroke();
+            ctxRace.setLineDash([]);
+
+            // Ziellinien-Beschriftung
+            ctxRace.fillStyle = '#facc15';
+            ctxRace.font = 'bold 12px sans-serif';
+            ctxRace.fillText(`ZIEL: ${p.goal.toLocaleString('de-DE')}`, w / 2 - 45, goalY - 8);
+
+            // Beschriftung unter den Türmen
+            ctxRace.font = 'bold 14px sans-serif';
+            ctxRace.fillStyle = '#f87171';
+            ctxRace.textAlign = 'center';
+            ctxRace.fillText(`f(n) = ${inputTermA.value}`, towerA_X + towerWidth / 2, h - 15);
+
+            ctxRace.fillStyle = '#38bdf8';
+            ctxRace.fillText(`g(n) = ${inputTermB.value}`, towerB_X + towerWidth / 2, h - 15);
+            ctxRace.textAlign = 'left';
+        }
+
+        function exportCSV() {
+            if (dataLog.length === 0) { 
+                alert('Es sind noch keine Messdaten vorhanden. Bitte starte zuerst die Simulation!'); 
+                return; 
+            }
+            let csv = `n;f(n) [${inputTermA.value}];g(n) [${inputTermB.value}];Fuehrend\n`;
+            dataLog.forEach(row => {
+                csv += `${row.n};${row.a.toFixed(2)};${row.b.toFixed(2)};${row.leader}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'kfs_math_race_messdaten.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        updateSpeedLabel();
+        setTimeout(resizeCanvas, 100);
+    </script>
+</body>
+</html>

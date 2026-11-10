@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KFS - Freier Fall & Senkrechter Wurf</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-orange: #fb923c;
+            --accent-green: #4ade80;
+            --accent-purple: #c084fc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+
+        input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 6px 8px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+        }
+
+        input[type="range"] {
+            padding: 4px 0;
+            accent-color: var(--accent-blue);
+        }
+
+        .speed-val {
+            font-weight: bold;
+            color: var(--accent-blue);
+            float: right;
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .btn-preset {
+            background-color: #334155;
+            color: var(--text-main);
+            font-size: 0.75rem;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-preset:hover { background-color: #475569; }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-primary { background-color: var(--accent-blue); color: #000; flex: 1; }
+        .btn-secondary { background-color: #475569; color: #fff; flex: 1; }
+        
+        .btn-csv {
+            background-color: #059669;
+            color: #ffffff;
+            width: 100%;
+            padding: 9px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-csv:hover { background-color: #10b981; }
+
+        canvas {
+            width: 100%;
+            height: 240px;
+            background-color: #090d16;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .outputs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .output-box {
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--card-border);
+        }
+
+        .output-box .title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .output-box .value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-top: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        th, td {
+            padding: 6px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        th { color: var(--text-muted); }
+
+        .table-container {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--card-border);
+            border-radius: 4px;
+        }
+
+        /* FORMEL-BEREICH */
+        .formula-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 5px;
+        }
+
+        .formula-item {
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .formula-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .formula-title {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+
+        .formula-math {
+            font-family: "Georgia", "Times New Roman", serif;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: var(--accent-purple);
+            background: #1e293b;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            border-left: 3px solid var(--accent-purple);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>KFS - Freier Fall & Senkrechter Wurf</h1>
+    </header>
+
+    <div class="grid-container">
+        <!-- LINKES PANEL: PARAMETER & FORMELN -->
+        <aside>
+            <div class="card">
+                <h2>Parameter</h2>
+
+                <div class="control-group">
+                    <label>Start- / Turmhöhe <i>h</i>₀ (m)</label>
+                    <input type="number" id="inputH0" value="50" min="0" max="1000" step="5" oninput="resetSim()">
+                </div>
+
+                <div class="control-group">
+                    <label>Anfangsgeschwindigkeit <i>v</i>₀ (m/s)</label>
+                    <input type="number" id="inputV0" value="0" min="-50" max="50" step="1" oninput="resetSim()">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">(0 = reiner Fall, + = Wurf nach oben)</span>
+                </div>
+
+                <div class="control-group">
+                    <label>Ortsfaktor <i>g</i> (m/s²)</label>
+                    <input type="number" id="inputG" value="9.81" min="0.1" max="30" step="0.01" oninput="resetSim()">
+                </div>
+
+                <div class="presets">
+                    <button class="btn-preset" onclick="setG(9.81)">Erde (9.81)</button>
+                    <button class="btn-preset" onclick="setG(1.62)">Mond (1.62)</button>
+                    <button class="btn-preset" onclick="setG(3.71)">Mars (3.71)</button>
+                </div>
+
+                <div style="margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 10px;">
+                    <div class="control-group">
+                        <label>Simulationsgeschwindigkeit <span class="speed-val" id="speedLabel">1.0x</span></label>
+                        <input type="range" id="inputSpeed" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateSpeedLabel()">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnStart" class="btn-primary" onclick="toggleSim()">Start</button>
+                    <button class="btn-secondary" onclick="resetSim()">Zurücksetzen</button>
+                </div>
+            </div>
+
+            <!-- UNTEN LINKS: VERWENDETE FORMELN -->
+            <div class="card">
+                <h2 style="color: var(--accent-purple);">Verwendete Formeln</h2>
+                <div class="formula-card">
+                    <div class="formula-item">
+                        <div class="formula-title">Zeit-Weg-Gesetz (Höhe):</div>
+                        <div class="formula-math"><i>y</i>(<i>t</i>) = <i>h</i>₀ + <i>v</i>₀·<i>t</i> - ½·<i>g</i>·<i>t</i>²</div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="formula-title">Zeit-Geschwindigkeits-Gesetz:</div>
+                        <div class="formula-math"><i>v</i>(<i>t</i>) = <i>v</i>₀ - <i>g</i>·<i>t</i></div>
+                    </div>
+                    <div class="formula-item">
+                        <div class="formula-title">Aufprallzeitpunkt (<i>y</i> = 0):</div>
+                        <div class="formula-math"><i>t</i><sub>fall</sub> = (<i>v</i>₀ + √(<i>v</i>₀² + 2·<i>g</i>·<i>h</i>₀)) / <i>g</i></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- HAUPTBEREICH -->
+        <main>
+            <!-- VISUALISIERUNG -->
+            <div class="card">
+                <h2>Visualisierung (Fallturm)</h2>
+                <canvas id="canvasSim"></canvas>
+            </div>
+
+            <!-- DIAGRAMM -->
+            <div class="card">
+                <h2>Zeit-Höhe-Diagramm (<i>t</i>-<i>y</i>-Diagramm)</h2>
+                <canvas id="canvasTY"></canvas>
+            </div>
+
+            <!-- ANALYTIK & TABLE -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card">
+                    <h2>Analytische Berechnung</h2>
+                    <div class="outputs-grid">
+                        <div class="output-box">
+                            <div class="title">Fallzeit <i>t</i><sub>fall</sub></div>
+                            <div class="value" id="valFallTime">-- s</div>
+                        </div>
+                        <div class="output-box">
+                            <div class="title">Aufprallgeschwindigkeit <i>v</i><sub>ende</sub></div>
+                            <div class="value" id="valImpactSpeed">-- m/s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Messdaten</h2>
+                    <button class="btn-csv" onclick="exportCSV()">
+                        💾 Messdaten als CSV exportieren
+                    </button>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><i>t</i> (s)</th>
+                                    <th><i>y</i> (m)</th>
+                                    <th><i>v</i> (m/s)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let t = 0;
+        let animationFrame;
+        let dataLog = [];
+
+        const inputH0 = document.getElementById('inputH0');
+        const inputV0 = document.getElementById('inputV0');
+        const inputG = document.getElementById('inputG');
+        const inputSpeed = document.getElementById('inputSpeed');
+        const speedLabel = document.getElementById('speedLabel');
+        const btnStart = document.getElementById('btnStart');
+
+        const cvSim = document.getElementById('canvasSim');
+        const cvTY = document.getElementById('canvasTY');
+        const ctxSim = cvSim.getContext('2d');
+        const ctxTY = cvTY.getContext('2d');
+
+        function updateSpeedLabel() {
+            speedLabel.textContent = parseFloat(inputSpeed.value).toFixed(1) + 'x';
+        }
+
+        function setG(val) {
+            inputG.value = val;
+            resetSim();
+        }
+
+        function resizeCanvas() {
+            [cvSim, cvTY].forEach(cv => {
+                cv.width = cv.clientWidth;
+                cv.height = cv.clientHeight;
+            });
+            drawAll();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function getParams() {
+            return {
+                h0: Math.max(0, parseFloat(inputH0.value) || 0),
+                v0: parseFloat(inputV0.value) || 0,
+                g: parseFloat(inputG.value) || 9.81,
+                speed: parseFloat(inputSpeed.value) || 1.0
+            };
+        }
+
+        function getAnalytics() {
+            const p = getParams();
+            if (p.h0 === 0 && p.v0 <= 0) return { tFall: 0, vEnde: 0, maxH: 0 };
+            
+            const discriminant = p.v0 * p.v0 + 2 * p.g * p.h0;
+            if (discriminant < 0) return { tFall: 0, vEnde: 0, maxH: p.h0 };
+            
+            const tFall = (p.v0 + Math.sqrt(discriminant)) / p.g;
+            const vEnde = Math.abs(p.v0 - p.g * tFall);
+            
+            // Maximale Höhe berechnen (Scheitelpunkt bei Wurf nach oben)
+            let maxH = p.h0;
+            if (p.v0 > 0) {
+                const tSteig = p.v0 / p.g;
+                maxH = p.h0 + p.v0 * tSteig - 0.5 * p.g * tSteig * tSteig;
+            }
+
+            return { tFall, vEnde, maxH };
+        }
+
+        function updateAnalytics() {
+            const a = getAnalytics();
+            document.getElementById('valFallTime').textContent = a.tFall.toFixed(2) + ' s';
+            document.getElementById('valImpactSpeed').textContent = a.vEnde.toFixed(2) + ' m/s';
+        }
+
+        function toggleSim() {
+            if (isRunning) {
+                isRunning = false;
+                btnStart.textContent = 'Weiter';
+                cancelAnimationFrame(animationFrame);
+            } else {
+                const a = getAnalytics();
+                if (t >= a.tFall) { t = 0; dataLog = []; }
+                isRunning = true;
+                btnStart.textContent = 'Pause';
+                animate();
+            }
+        }
+
+        function resetSim() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrame);
+            btnStart.textContent = 'Start';
+            t = 0;
+            dataLog = [];
+            document.getElementById('tableBody').innerHTML = '';
+            updateAnalytics();
+            drawAll();
+        }
+
+        function animate() {
+            const p = getParams();
+            const a = getAnalytics();
+            const tMax = Math.max(0.1, a.tFall);
+
+            t += 0.02 * p.speed;
+            if (t > tMax) {
+                t = tMax;
+                isRunning = false;
+                btnStart.textContent = 'Start';
+            }
+
+            const y = Math.max(0, p.h0 + p.v0 * t - 0.5 * p.g * t * t);
+            const v = p.v0 - p.g * t;
+
+            dataLog.push({ t, y, v });
+            updateTable(t, y, v);
+
+            drawAll();
+
+            if (isRunning) {
+                animationFrame = requestAnimationFrame(animate);
+            }
+        }
+
+        function updateTable(tVal, yVal, vVal) {
+            const tbody = document.getElementById('tableBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${tVal.toFixed(2)}</td>
+                <td>${yVal.toFixed(2)}</td>
+                <td>${vVal.toFixed(2)}</td>
+            `;
+            tbody.insertBefore(tr, tbody.firstChild);
+        }
+
+        function drawAll() {
+            drawSim();
+            drawTY();
+        }
+
+        function drawSim() {
+            const w = cvSim.width, h = cvSim.height;
+            ctxSim.clearRect(0, 0, w, h);
+            const p = getParams();
+            const a = getAnalytics();
+            const margin = 40;
+
+            const drawHeight = h - 2 * margin;
+            // Automatische Skalierung: Nutzt entweder h0 oder den Scheitelpunkt (maxH), je nachdem was höher ist
+            const maxDisplayH = Math.max(10, a.maxH * 1.15);
+            const scaleY = drawHeight / maxDisplayH;
+
+            // Bodenlinie
+            ctxSim.strokeStyle = '#334155';
+            ctxSim.lineWidth = 3;
+            ctxSim.beginPath();
+            ctxSim.moveTo(margin, h - margin);
+            ctxSim.lineTo(w - margin, h - margin);
+            ctxSim.stroke();
+
+            // Skalenmarkierungen (dynamischer Abstand je nach Höhe)
+            ctxSim.fillStyle = '#94a3b8';
+            ctxSim.font = '10px sans-serif';
+            const stepMeters = maxDisplayH > 300 ? 50 : (maxDisplayH > 100 ? 20 : 10);
+            for (let m = 0; m <= maxDisplayH; m += stepMeters) {
+                const py = (h - margin) - m * scaleY;
+                if (py >= margin && py <= h - margin) {
+                    ctxSim.fillRect(margin - 5, py, 5, 1);
+                    ctxSim.fillText(m + ' m', margin - 38, py + 4);
+                }
+            }
+
+            // Aktuelle Höhe berechnen
+            const yCurr = Math.max(0, p.h0 + p.v0 * t - 0.5 * p.g * t * t);
+            const ballPy = (h - margin) - yCurr * scaleY;
+            const ballPx = w / 2;
+
+            // Fallender Körper (Kugel)
+            ctxSim.fillStyle = '#38bdf8';
+            ctxSim.beginPath();
+            ctxSim.arc(ballPx, ballPy, 10, 0, Math.PI * 2);
+            ctxSim.fill();
+        }
+
+        function drawTY() {
+            const w = cvTY.width, h = cvTY.height;
+            ctxTY.clearRect(0, 0, w, h);
+            const p = getParams();
+            const a = getAnalytics();
+            const margin = 40;
+
+            const tMax = Math.max(0.5, a.tFall * 1.1);
+            const maxDisplayH = Math.max(10, a.maxH * 1.15);
+
+            const scaleT = (w - 2 * margin) / tMax;
+            const scaleY = (h - 2 * margin) / maxDisplayH;
+
+            // Achsen
+            ctxTY.strokeStyle = '#475569';
+            ctxTY.lineWidth = 1;
+            ctxTY.beginPath();
+            ctxTY.moveTo(margin, h - margin); ctxTY.lineTo(w - margin, h - margin);
+            ctxTY.moveTo(margin, h - margin); ctxTY.lineTo(margin, margin);
+            ctxTY.stroke();
+
+            // Achsenbeschriftung
+            ctxTY.fillStyle = '#94a3b8';
+            ctxTY.font = '11px sans-serif';
+            ctxTY.fillText('t (s)', w - margin + 5, h - margin + 4);
+            ctxTY.fillText('y (m)', margin - 20, margin - 10);
+
+            // Dynamischer Graph (Parabel) bis t
+            ctxTY.strokeStyle = '#38bdf8';
+            ctxTY.lineWidth = 2.5;
+            ctxTY.beginPath();
+            for (let step = 0; step <= t; step += 0.05) {
+                const st = margin + step * scaleT;
+                const yt = Math.max(0, p.h0 + p.v0 * step - 0.5 * p.g * step * step);
+                const sy = (h - margin) - yt * scaleY;
+                if (step === 0) ctxTY.moveTo(st, sy); else ctxTY.lineTo(st, sy);
+            }
+            ctxTY.stroke();
+
+            // Aktueller Punkt im Diagramm
+            const currY = Math.max(0, p.h0 + p.v0 * t - 0.5 * p.g * t * t);
+            const pxt = margin + t * scaleT;
+            const pyt = (h - margin) - currY * scaleY;
+            ctxTY.fillStyle = '#38bdf8';
+            ctxTY.beginPath(); ctxTY.arc(pxt, pyt, 4, 0, Math.PI * 2); ctxTY.fill();
+
+            // Aufprallpunkt markieren, wenn t >= Fallzeit
+            if (a.tFall > 0 && t >= a.tFall) {
+                const pxtImpact = margin + a.tFall * scaleT;
+                const pytImpact = (h - margin);
+
+                ctxTY.fillStyle = '#4ade80';
+                ctxTY.beginPath();
+                ctxTY.arc(pxtImpact, pytImpact, 6, 0, Math.PI * 2);
+                ctxTY.fill();
+
+                ctxTY.strokeStyle = '#4ade80';
+                ctxTY.setLineDash([4, 4]);
+                ctxTY.beginPath();
+                ctxTY.moveTo(pxtImpact, pytImpact); ctxTY.lineTo(pxtImpact, margin);
+                ctxTY.stroke();
+                ctxTY.setLineDash([]);
+            }
+        }
+
+        // CSV-Export Funktion
+        function exportCSV() {
+            if (dataLog.length === 0) { 
+                alert('Es sind noch keine Messdaten vorhanden. Bitte starte zuerst die Simulation!'); 
+                return; 
+            }
+            let csv = 'Zeit (s);Hoehe y (m);Geschwindigkeit v (m/s)\n';
+            dataLog.forEach(row => {
+                csv += `${row.t.toFixed(2)};${row.y.toFixed(2)};${row.v.toFixed(2)}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'kfs_freier_fall_messdaten.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        updateAnalytics();
+        setTimeout(resizeCanvas, 100);
+    </script>
+</body>
+</html>
